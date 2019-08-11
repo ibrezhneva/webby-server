@@ -1,0 +1,78 @@
+package com.ibrezhneva.webby.server.app;
+
+import com.ibrezhneva.webby.server.entity.WebAppContainer;
+import com.ibrezhneva.webby.server.service.RequestHandler;
+import com.ibrezhneva.webby.server.service.WebAppCreator;
+import com.ibrezhneva.webby.server.service.WebAppPathWatcher;
+import lombok.extern.slf4j.Slf4j;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.*;
+
+@Slf4j
+public class Server {
+    private static final String CONFIGURATION_YAML = "configuration.yaml";
+    private boolean isShutdown;
+    private ThreadPoolExecutor requestHandlerExecutor;
+    private WebAppPathWatcher webAppPathWatcher;
+    private WebAppContainer webAppContainer;
+
+    public static void main(String[] args) {
+        Server server = new Server();
+        if(args.length == 0) {
+            log.info("Usage server commands: start, stop");
+            return;
+        }
+        if (args[0].equals("start")) {
+            server.start();
+        } else if (args[0].equals("stop")) {
+            server.stop();
+        }
+    }
+
+    private void start() {
+        webAppContainer = new WebAppContainer();
+        webAppPathWatcher = new WebAppPathWatcher(new WebAppCreator(webAppContainer));
+        new Thread(webAppPathWatcher).start();
+        webAppPathWatcher.setShutdown(true);
+        ServerConfig serverConfig = getServerConfigFromYaml(CONFIGURATION_YAML);
+
+        requestHandlerExecutor = new ThreadPoolExecutor(1,
+                serverConfig.getMaxThreads(),
+                serverConfig.getConnectionTimeout(),
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(20));
+
+        try (ServerSocket serverSocket = new ServerSocket(serverConfig.getPort())) {
+            log.info("Server started. Port " + serverConfig.getPort());
+            while (!isShutdown) {
+                Socket socket = serverSocket.accept();
+                RequestHandler requestHandler = new RequestHandler(socket, webAppContainer);
+                requestHandlerExecutor.submit(requestHandler);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error during socket connection", e);
+        }
+    }
+
+    private void stop() {
+        isShutdown = true;
+        webAppPathWatcher.setShutdown(true);
+        requestHandlerExecutor.shutdown();
+        webAppContainer.decommissionWebApps();
+    }
+
+    ServerConfig getServerConfigFromYaml(String configYamlFile) {
+        try (InputStream inputStream = Server.class.getClassLoader().getResourceAsStream(configYamlFile)) {
+            Yaml yaml = new Yaml(new Constructor(ServerConfig.class));
+            return yaml.loadAs(inputStream, ServerConfig.class);
+        } catch (IOException e) {
+            throw new RuntimeException("Error during getting server configuration from yaml", e);
+        }
+    }
+}
