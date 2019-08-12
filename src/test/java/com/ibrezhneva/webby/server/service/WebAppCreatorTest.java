@@ -1,7 +1,7 @@
 package com.ibrezhneva.webby.server.service;
 
-import com.ibrezhneva.webby.server.entity.WebApp;
-import com.ibrezhneva.webby.server.entity.WebAppContainer;
+import com.ibrezhneva.webby.server.entity.model.WebApp;
+import com.ibrezhneva.webby.server.entity.model.WebAppContainer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

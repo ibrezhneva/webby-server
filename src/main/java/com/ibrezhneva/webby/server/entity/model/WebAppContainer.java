@@ -1,4 +1,4 @@
-package com.ibrezhneva.webby.server.entity;
+package com.ibrezhneva.webby.server.entity.model;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

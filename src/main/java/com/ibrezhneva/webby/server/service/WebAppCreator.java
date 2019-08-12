@@ -1,8 +1,8 @@
 package com.ibrezhneva.webby.server.service;
 
-import com.ibrezhneva.webby.server.entity.WebApp;
+import com.ibrezhneva.webby.server.entity.model.WebApp;
 import com.ibrezhneva.webby.server.entity.WebAppClassLoader;
-import com.ibrezhneva.webby.server.entity.WebAppContainer;
+import com.ibrezhneva.webby.server.entity.model.WebAppContainer;
 import com.ibrezhneva.webby.server.reader.DeploymentDescriptorHandler;
 import com.ibrezhneva.webby.server.reader.entity.DeploymentDescriptor;
 import com.ibrezhneva.webby.server.reader.entity.ServletDefinition;

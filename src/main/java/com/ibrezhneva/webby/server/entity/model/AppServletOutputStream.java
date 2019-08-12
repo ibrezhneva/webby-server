@@ -15,6 +15,8 @@ public class AppServletOutputStream extends ServletOutputStream {
     private int index;
     @Setter
     private String responseStatusLine;
+    @Setter
+    private String headers;
     private boolean isStatusLineWritten;
 
     public AppServletOutputStream(OutputStream outputStream) {
@@ -44,6 +46,7 @@ public class AppServletOutputStream extends ServletOutputStream {
     public void flush() throws IOException {
         if(!isStatusLineWritten) {
             outputStream.write(responseStatusLine.getBytes());
+            outputStream.write(headers.getBytes());
             isStatusLineWritten = true;
         }
         outputStream.write(buffer, 0, index);

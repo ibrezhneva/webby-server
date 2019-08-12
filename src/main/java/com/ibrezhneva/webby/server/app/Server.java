@@ -1,6 +1,6 @@
 package com.ibrezhneva.webby.server.app;
 
-import com.ibrezhneva.webby.server.entity.WebAppContainer;
+import com.ibrezhneva.webby.server.entity.model.WebAppContainer;
 import com.ibrezhneva.webby.server.service.RequestHandler;
 import com.ibrezhneva.webby.server.service.WebAppCreator;
 import com.ibrezhneva.webby.server.service.WebAppPathWatcher;
@@ -39,7 +39,6 @@ public class Server {
         webAppContainer = new WebAppContainer();
         webAppPathWatcher = new WebAppPathWatcher(new WebAppCreator(webAppContainer));
         new Thread(webAppPathWatcher).start();
-        webAppPathWatcher.setShutdown(true);
         ServerConfig serverConfig = getServerConfigFromYaml(CONFIGURATION_YAML);
 
         requestHandlerExecutor = new ThreadPoolExecutor(1,

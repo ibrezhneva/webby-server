@@ -8,4 +8,9 @@ import lombok.Data;
 public class HttpHeader {
     private String name;
     private String value;
+
+    @Override
+    public String toString() {
+        return name + ": " + value;
+    }
 }

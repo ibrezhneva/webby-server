@@ -1,7 +1,7 @@
 package com.ibrezhneva.webby.server.service;
 
 
-import com.ibrezhneva.webby.server.entity.WebAppContainer;
+import com.ibrezhneva.webby.server.entity.model.WebAppContainer;
 import com.ibrezhneva.webby.server.entity.http.HttpStatus;
 import com.ibrezhneva.webby.server.entity.model.AppServletOutputStream;
 import com.ibrezhneva.webby.server.entity.model.AppServletRequest;
@@ -66,7 +66,7 @@ public class RequestHandler implements Runnable {
         try {
             String statusLine = "HTTP/1.1" + " " + httpStatus.toString();
             bufferedOutputStream.write(statusLine.getBytes());
-            bufferedOutputStream.write("\n\n".getBytes());
+            bufferedOutputStream.write("\r\n\r\n".getBytes());
             bufferedOutputStream.write(message.getBytes());
         } catch (IOException e) {
             log.error("Bad luck =(", e);

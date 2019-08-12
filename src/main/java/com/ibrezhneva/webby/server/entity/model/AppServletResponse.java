@@ -10,6 +10,7 @@ import lombok.Setter;
 import javax.servlet.ServletOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Setter
@@ -17,7 +18,8 @@ public class AppServletResponse extends HttpServletResponseAdapter {
     private AppServletOutputStream outputStream;
     private PrintWriter writer;
     private String contentType;
-    private List<HttpHeader> headers;
+    @Getter
+    private List<HttpHeader> headers = new ArrayList<>();
     @Getter
     private HttpStatus httpStatus;
     private int status;

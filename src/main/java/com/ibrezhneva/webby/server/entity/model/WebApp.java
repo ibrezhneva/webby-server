@@ -1,5 +1,7 @@
-package com.ibrezhneva.webby.server.entity;
+package com.ibrezhneva.webby.server.entity.model;
 
+import com.ibrezhneva.webby.server.entity.WebAppClassLoader;
+import com.ibrezhneva.webby.server.entity.http.HttpHeader;
 import com.ibrezhneva.webby.server.entity.model.AppServletOutputStream;
 import com.ibrezhneva.webby.server.entity.model.AppServletRequest;
 import com.ibrezhneva.webby.server.entity.model.AppServletResponse;
@@ -9,6 +11,7 @@ import javax.servlet.GenericServlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,6 +37,7 @@ public class WebApp {
             }
             servlet.service(request, response);
             setResponseStatusLine(response);
+            setResponseHeaders(response);
             response.getWriter().flush();
 
         } catch (ReflectiveOperationException e) {
@@ -52,10 +56,19 @@ public class WebApp {
     private void setResponseStatusLine(AppServletResponse response) {
         StringBuilder responseStatusLine = new StringBuilder();
         responseStatusLine.append("HTTP/1.1 ");
-        responseStatusLine.append(response.getStatus());
-        responseStatusLine.append(" ");
-        responseStatusLine.append(response.getHttpStatus().getStatusMessage());
-        responseStatusLine.append("\r\n\r\n");
+        responseStatusLine.append(response.getHttpStatus());
+        responseStatusLine.append("\n");
         ((AppServletOutputStream) response.getOutputStream()).setResponseStatusLine(responseStatusLine.toString());
+    }
+
+    private void setResponseHeaders(AppServletResponse response) {
+        Optional<List<HttpHeader>> optionalHeaders = Optional.ofNullable(response.getHeaders());
+        StringBuilder headersBuiltString = new StringBuilder();
+        if (optionalHeaders.isPresent()) {
+            List<HttpHeader> headers = optionalHeaders.get();
+            headers.forEach(e -> headersBuiltString.append(e.toString()).append("\n"));
+        }
+        headersBuiltString.append("\r\n");
+        ((AppServletOutputStream) response.getOutputStream()).setHeaders(headersBuiltString.toString());
     }
 }
