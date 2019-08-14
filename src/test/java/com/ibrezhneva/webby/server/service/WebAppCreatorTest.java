@@ -36,7 +36,7 @@ class WebAppCreatorTest {
         WebAppContainer webAppContainer = new WebAppContainer();
         WebAppCreator webAppCreator = new WebAppCreator(webAppContainer);
         webAppCreator.createWebApp(WAR_FILE_PATH);
-        WebApp webApp = webAppContainer.getWebApp(WEBAPP_NAME);
+        WebApp webApp = webAppContainer.getWebApp(WEBAPP_NAME).get();
         assertNotNull(webApp);
         assertEquals(WEBAPP_NAME, webApp.getAppFolder());
         assertTrue(webApp.getServletPathToClassMap().containsKey("/"));

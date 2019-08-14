@@ -1,13 +1,13 @@
 package com.ibrezhneva.webby.server.service;
 
 
-import com.ibrezhneva.webby.server.entity.model.WebAppContainer;
+import com.ibrezhneva.webby.server.entity.http.HttpResponseConstants;
+import com.ibrezhneva.webby.server.entity.model.*;
 import com.ibrezhneva.webby.server.entity.http.HttpStatus;
-import com.ibrezhneva.webby.server.entity.model.AppServletOutputStream;
-import com.ibrezhneva.webby.server.entity.model.AppServletRequest;
-import com.ibrezhneva.webby.server.entity.model.AppServletResponse;
 import com.ibrezhneva.webby.server.exception.ServerException;
 import com.ibrezhneva.webby.server.util.RequestParser;
+import lombok.Cleanup;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
@@ -15,11 +15,11 @@ import java.net.Socket;
 
 @Slf4j
 public class RequestHandler implements Runnable {
-    private Socket socket;
+    private Socket httpSocket;
     private WebAppContainer webAppContainer;
 
-    public RequestHandler(Socket socket, WebAppContainer webAppContainer) {
-        this.socket = socket;
+    public RequestHandler(Socket httpSocket, WebAppContainer webAppContainer) {
+        this.httpSocket = httpSocket;
         this.webAppContainer = webAppContainer;
     }
 
@@ -28,25 +28,26 @@ public class RequestHandler implements Runnable {
         handle();
     }
 
+    @SneakyThrows
     private void handle() {
-        try (InputStream inputStream = socket.getInputStream();
-             OutputStream outputStream = socket.getOutputStream()) {
-            try {
-                AppServletRequest request = RequestParser.parseRequest(inputStream);
-                AppServletResponse response = getInitAppServletResponse(outputStream);
-                webAppContainer.getWebApp(request.getWebAppName()).process(request, response);
-            } catch (ServerException e) {
-                writeResponseDirectly(outputStream, e.getHttpStatus(), e.getMessage());
-            } catch (Exception e) {
-                writeResponseDirectly(outputStream, HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-            }
-        } catch (IOException e) {
-            log.error("Error during getting stream from socket", e);
-        } finally {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                log.error("Error during socket closure", e);
+        @Cleanup Socket socket = httpSocket;
+        while (!socket.isClosed()) {
+            try (InputStream inputStream = socket.getInputStream();
+                 OutputStream outputStream = socket.getOutputStream()) {
+                if (inputStream.available() > 0) {
+                    try {
+                        AppServletRequest request = RequestParser.parseRequest(inputStream);
+                        AppServletResponse response = getInitAppServletResponse(outputStream);
+                        String requestWebAppName = request.getWebAppName();
+                        WebApp webApp = webAppContainer.getWebApp(requestWebAppName)
+                                .orElseThrow(() -> new ServerException(HttpStatus.NOT_FOUND, "There is no web application for " + requestWebAppName));
+                        webApp.process(request, response);
+                    } catch (ServerException e) {
+                        writeResponseDirectly(outputStream, e.getHttpStatus(), e.getMessage());
+                    } catch (Exception e) {
+                        writeResponseDirectly(outputStream, HttpStatus.INTERNAL_SERVER_ERROR, e.toString());
+                    }
+                }
             }
         }
     }
@@ -61,15 +62,13 @@ public class RequestHandler implements Runnable {
         return response;
     }
 
+    @SneakyThrows
     private void writeResponseDirectly(OutputStream outputStream, HttpStatus httpStatus, String message) {
-        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
-        try {
-            String statusLine = "HTTP/1.1" + " " + httpStatus.toString();
-            bufferedOutputStream.write(statusLine.getBytes());
-            bufferedOutputStream.write("\r\n\r\n".getBytes());
-            bufferedOutputStream.write(message.getBytes());
-        } catch (IOException e) {
-            log.error("Bad luck =(", e);
-        }
+        @Cleanup BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+        String statusLine = HttpResponseConstants.HTTP_VERSION + " " + httpStatus.toString();
+        bufferedOutputStream.write(statusLine.getBytes());
+        bufferedOutputStream.write(HttpResponseConstants.CRLF_BYTES);
+        bufferedOutputStream.write(HttpResponseConstants.CRLF_BYTES);
+        bufferedOutputStream.write(message.getBytes());
     }
 }

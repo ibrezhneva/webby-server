@@ -29,12 +29,6 @@ public abstract class RequestParser {
             injectWebAppNameAndServletPath(request);
             injectQueryString(request);
             injectHeaders(request, reader);
-            if (request.getIntHeader(HttpHeaderName.CONTENT_LENGTH.getName()) > 0 ||
-                    (request.getHeader(HttpHeaderName.TRANSFER_ENCODING.getName()) != null)) {
-
-                AppServletInputStream servletInputStream = new AppServletInputStream(inputStream);
-                request.setInputStream(servletInputStream);
-            }
             return request;
         } catch (Exception e) {
             log.error("Error during request parsing", e);

@@ -2,9 +2,7 @@ package com.ibrezhneva.webby.server.entity.model;
 
 import com.ibrezhneva.webby.server.entity.WebAppClassLoader;
 import com.ibrezhneva.webby.server.entity.http.HttpHeader;
-import com.ibrezhneva.webby.server.entity.model.AppServletOutputStream;
-import com.ibrezhneva.webby.server.entity.model.AppServletRequest;
-import com.ibrezhneva.webby.server.entity.model.AppServletResponse;
+import com.ibrezhneva.webby.server.entity.http.HttpResponseConstants;
 import lombok.Data;
 
 import javax.servlet.GenericServlet;
@@ -30,10 +28,10 @@ public class WebApp {
             if (!servletOptional.isPresent()) {
                 Class<?> servletClass = servletPathToClassMap.get(request.getServletPath());
                 servlet = (HttpServlet) servletClass.getDeclaredConstructor().newInstance();
-            } else {
-                servlet = servletOptional.get();
                 servletPathToServletMap.put(requestURI, servlet);
                 servlet.init();
+            } else {
+                servlet = servletOptional.get();
             }
             servlet.service(request, response);
             setResponseStatusLine(response);
@@ -55,9 +53,9 @@ public class WebApp {
 
     private void setResponseStatusLine(AppServletResponse response) {
         StringBuilder responseStatusLine = new StringBuilder();
-        responseStatusLine.append("HTTP/1.1 ");
+        responseStatusLine.append(HttpResponseConstants.HTTP_VERSION).append(" ");
         responseStatusLine.append(response.getHttpStatus());
-        responseStatusLine.append("\n");
+        responseStatusLine.append(HttpResponseConstants.CRLF);
         ((AppServletOutputStream) response.getOutputStream()).setResponseStatusLine(responseStatusLine.toString());
     }
 
@@ -68,7 +66,7 @@ public class WebApp {
             List<HttpHeader> headers = optionalHeaders.get();
             headers.forEach(e -> headersBuiltString.append(e.toString()).append("\n"));
         }
-        headersBuiltString.append("\r\n");
+        headersBuiltString.append(HttpResponseConstants.CRLF);
         ((AppServletOutputStream) response.getOutputStream()).setHeaders(headersBuiltString.toString());
     }
 }

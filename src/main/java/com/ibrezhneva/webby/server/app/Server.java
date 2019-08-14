@@ -24,7 +24,7 @@ public class Server {
 
     public static void main(String[] args) {
         Server server = new Server();
-        if(args.length == 0) {
+        if (args.length == 0) {
             log.info("Usage server commands: start, stop");
             return;
         }

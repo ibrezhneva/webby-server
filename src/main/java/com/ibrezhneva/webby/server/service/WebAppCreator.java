@@ -50,15 +50,18 @@ public class WebAppCreator {
         Map<String, Class<?>> servletPathToClassMap = deploymentDescriptor.getServletDefinitions()
                 .stream()
                 .collect(Collectors.toMap(ServletDefinition::getUrlPattern,
-                        t -> {
-                            try {
-                                return webApp.getClassLoader().loadClass(t.getClassName());
-                            } catch (ClassNotFoundException e) {
-                                throw new RuntimeException("Class not found for " + t.getClassName(), e);
-                            }
-                        }));
+                        t -> getClass(webApp, t.getClassName())));
 
         webApp.setServletPathToClassMap(servletPathToClassMap);
         return webApp;
     }
+
+    private Class<?> getClass(WebApp webApp, String className) {
+        try {
+            return webApp.getClassLoader().loadClass(className);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("Class not found for " + className, e);
+        }
+    }
+
 }

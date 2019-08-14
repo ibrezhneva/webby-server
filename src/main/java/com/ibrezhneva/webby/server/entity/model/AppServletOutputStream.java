@@ -44,7 +44,7 @@ public class AppServletOutputStream extends ServletOutputStream {
 
     @Override
     public void flush() throws IOException {
-        if(!isStatusLineWritten) {
+        if (!isStatusLineWritten) {
             outputStream.write(responseStatusLine.getBytes());
             outputStream.write(headers.getBytes());
             isStatusLineWritten = true;

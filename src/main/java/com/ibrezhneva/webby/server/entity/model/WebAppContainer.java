@@ -1,6 +1,7 @@
 package com.ibrezhneva.webby.server.entity.model;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class WebAppContainer {
@@ -10,8 +11,8 @@ public class WebAppContainer {
         webAppMap.put(webApp.getAppFolder(), webApp);
     }
 
-    public WebApp getWebApp(String webAppName) {
-        return webAppMap.get(webAppName);
+    public Optional<WebApp> getWebApp(String webAppName) {
+        return Optional.ofNullable(webAppMap.get(webAppName));
     }
 
     public void decommissionWebApps() {
