@@ -22,20 +22,9 @@ public class Server {
     private WebAppPathWatcher webAppPathWatcher;
     private WebAppContainer webAppContainer;
 
-    public static void main(String[] args) {
-        Server server = new Server();
-        if (args.length == 0) {
-            log.info("Usage server commands: start, stop");
-            return;
-        }
-        if (args[0].equals("start")) {
-            server.start();
-        } else if (args[0].equals("stop")) {
-            server.stop();
-        }
-    }
+    public void start() {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::stop, "Server-shutdown-thread"));
 
-    private void start() {
         webAppContainer = new WebAppContainer();
         webAppPathWatcher = new WebAppPathWatcher(new WebAppCreator(webAppContainer));
         new Thread(webAppPathWatcher).start();
@@ -43,12 +32,12 @@ public class Server {
 
         requestHandlerExecutor = new ThreadPoolExecutor(1,
                 serverConfig.getMaxThreads(),
-                serverConfig.getConnectionTimeout(),
+                serverConfig.getKeepAliveTimeout(),
                 TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(20));
+                new LinkedBlockingQueue<>(serverConfig.getAcceptCount()));
 
         try (ServerSocket serverSocket = new ServerSocket(serverConfig.getPort())) {
-            log.info("Server started. Port " + serverConfig.getPort());
+            log.info("Server started. Port: {}", serverConfig.getPort());
             while (!isShutdown) {
                 Socket socket = serverSocket.accept();
                 RequestHandler requestHandler = new RequestHandler(socket, webAppContainer);
@@ -63,7 +52,8 @@ public class Server {
         isShutdown = true;
         webAppPathWatcher.setShutdown(true);
         requestHandlerExecutor.shutdown();
-        webAppContainer.decommissionWebApps();
+        webAppContainer.destroyWebApps();
+        log.info("Server stopped");
     }
 
     ServerConfig getServerConfigFromYaml(String configYamlFile) {

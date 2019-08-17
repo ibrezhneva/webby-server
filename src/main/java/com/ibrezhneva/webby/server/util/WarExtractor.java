@@ -7,9 +7,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class WarExtractor {
-    private static final int BUFFER_SIZE = 1024;
+    private static final int BUFFER_SIZE = 8192;
 
-    public void extractWar(String path, String destPath) {
+    public static void extractWar(String path, String destPath) {
         File destDir = new File(destPath);
         byte[] buffer = new byte[BUFFER_SIZE];
         try (BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(path));

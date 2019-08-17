@@ -37,7 +37,8 @@ public class RequestHandler implements Runnable {
                 if (inputStream.available() > 0) {
                     try {
                         AppServletRequest request = RequestParser.parseRequest(inputStream);
-                        AppServletResponse response = getInitAppServletResponse(outputStream);
+                        AppServletResponse response = createAppServletResponse(outputStream);
+
                         String requestWebAppName = request.getWebAppName();
                         WebApp webApp = webAppContainer.getWebApp(requestWebAppName)
                                 .orElseThrow(() -> new ServerException(HttpStatus.NOT_FOUND, "There is no web application for " + requestWebAppName));
@@ -52,7 +53,7 @@ public class RequestHandler implements Runnable {
         }
     }
 
-    private AppServletResponse getInitAppServletResponse(OutputStream outputStream) {
+    private AppServletResponse createAppServletResponse(OutputStream outputStream) {
         AppServletResponse response = new AppServletResponse();
         AppServletOutputStream servletOutputStream = new AppServletOutputStream(outputStream);
         response.setOutputStream(servletOutputStream);

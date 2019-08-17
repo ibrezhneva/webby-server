@@ -1,5 +1,6 @@
 package com.ibrezhneva.webby.server.service;
 
+import lombok.Cleanup;
 import lombok.SneakyThrows;
 
 import java.io.File;
@@ -19,7 +20,7 @@ public class WebAppPathWatcher implements Runnable {
 
     @SneakyThrows
     private void scan() {
-        WatchService watchService = FileSystems.getDefault().newWatchService();
+        @Cleanup WatchService watchService = FileSystems.getDefault().newWatchService();
         Path webappsPath = Paths.get(new File(WEBAPPS_FOLDER_NAME).getCanonicalPath());
 
         Files.walk(webappsPath)

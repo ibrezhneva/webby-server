@@ -17,6 +17,7 @@ class ServerTest {
         assertNotNull(serverConfig);
         assertEquals(serverConfig.getPort(), 8180);
         assertEquals(serverConfig.getMaxThreads(), 20);
-        assertEquals(serverConfig.getConnectionTimeout(), 60);
+        assertEquals(serverConfig.getKeepAliveTimeout(), 60);
+        assertEquals(serverConfig.getAcceptCount(), 10);
     }
 }

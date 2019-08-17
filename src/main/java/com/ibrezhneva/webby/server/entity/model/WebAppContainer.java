@@ -15,7 +15,7 @@ public class WebAppContainer {
         return Optional.ofNullable(webAppMap.get(webAppName));
     }
 
-    public void decommissionWebApps() {
+    public void destroyWebApps() {
         webAppMap.values().forEach(WebApp::destroy);
     }
 }

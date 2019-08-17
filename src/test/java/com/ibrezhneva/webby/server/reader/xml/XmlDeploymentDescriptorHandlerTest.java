@@ -41,7 +41,7 @@ class XmlDeploymentDescriptorHandlerTest {
 
         DeploymentDescriptorHandler handler = new XmlDeploymentDescriptorHandler();
         InputStream in = XmlDeploymentDescriptorHandlerTest.class.getClassLoader().getResourceAsStream(DEPLOYMENT_DESCRIPTOR_PATH);
-        DeploymentDescriptor deploymentDescriptor = handler.getDeploymentDescriptor(in, DEPLOYMENT_DESCRIPTOR_PATH);
+        DeploymentDescriptor deploymentDescriptor = handler.getDeploymentDescriptor(in);
         assertNotNull(deploymentDescriptor);
         assertTrue(deploymentDescriptor.getServletDefinitions().containsAll(servletDefinitions));
         assertTrue(servletDefinitions.containsAll(deploymentDescriptor.getServletDefinitions()));

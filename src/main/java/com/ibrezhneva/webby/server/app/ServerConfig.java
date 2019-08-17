@@ -6,5 +6,6 @@ import lombok.Data;
 public class ServerConfig {
     private int port;
     private int maxThreads;
-    private int connectionTimeout;
+    private int keepAliveTimeout;
+    private int acceptCount;
 }

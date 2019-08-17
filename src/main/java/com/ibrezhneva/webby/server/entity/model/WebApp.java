@@ -20,6 +20,10 @@ public class WebApp {
     private Map<String, Class<?>> servletPathToClassMap;
     private Map<String, HttpServlet> servletPathToServletMap = new HashMap<>();
 
+    public WebApp(String appFolder) {
+        this.appFolder = appFolder;
+    }
+
     public void process(AppServletRequest request, AppServletResponse response) {
         HttpServlet servlet;
         String requestURI = request.getRequestURI();
@@ -41,7 +45,7 @@ public class WebApp {
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("Error during servlet instantiation", e);
         } catch (ServletException e) {
-            throw new RuntimeException("Error during servlet initialization", e);
+            throw new RuntimeException("Error during servlet init method", e);
         } catch (Exception e) {
             throw new RuntimeException("Error during HTTP request handling", e);
         }

@@ -23,7 +23,7 @@ public class WebAppClassLoader extends ClassLoader {
                     .filter(f -> f.toString().endsWith(JAR_EXTENSION))
                     .map(Path::toString)
                     .collect(Collectors.toList());
-            paths.add(webInfPath.toString()+"/classes");
+            paths.add(webInfPath.toString() + "/classes");
         } catch (IOException e) {
             throw new RuntimeException("Error during Class paths loading", e);
         }
@@ -53,7 +53,7 @@ public class WebAppClassLoader extends ClassLoader {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error during Class search", e);
+            throw new RuntimeException("Error during Class search by name: " + name, e);
         }
         return super.findClass(name);
     }

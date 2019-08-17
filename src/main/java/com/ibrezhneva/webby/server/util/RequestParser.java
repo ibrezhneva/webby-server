@@ -25,6 +25,7 @@ public abstract class RequestParser {
         try {
             String line = reader.readLine();
             AppServletRequest request = new AppServletRequest();
+
             injectUriAndMethodAndProtocol(request, line);
             injectWebAppNameAndServletPath(request);
             injectQueryString(request);

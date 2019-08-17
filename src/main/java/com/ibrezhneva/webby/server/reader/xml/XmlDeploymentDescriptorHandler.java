@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class XmlDeploymentDescriptorHandler implements DeploymentDescriptorHandler {
+
+    private static final DocumentBuilderFactory BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
     private static final String SERVLET_TAG = "servlet";
     private static final String SERVLET_NAME_TAG = "servlet-name";
     private static final String SERVLET_CLASS_TAG = "servlet-class";
@@ -23,13 +25,12 @@ public class XmlDeploymentDescriptorHandler implements DeploymentDescriptorHandl
     private static final String URL_PATTERN_TAG = "url-pattern";
 
     @Override
-    public DeploymentDescriptor getDeploymentDescriptor(InputStream inputStream, String path) {
+    public DeploymentDescriptor getDeploymentDescriptor(InputStream inputStream) {
         DeploymentDescriptor deploymentDescriptor = new DeploymentDescriptor();
         Map<String, ServletDefinition> servletDefinitionMap = new HashMap<>();
 
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         try {
-            DocumentBuilder builder = factory.newDocumentBuilder();
+            DocumentBuilder builder = BUILDER_FACTORY.newDocumentBuilder();
             Document document = builder.parse(inputStream);
             NodeList servletNodes = document.getDocumentElement().getElementsByTagName(SERVLET_TAG);
             for (int i = 0; i < servletNodes.getLength(); i++) {
@@ -48,7 +49,7 @@ public class XmlDeploymentDescriptorHandler implements DeploymentDescriptorHandl
                 servletDefinition.setUrlPattern(element.getElementsByTagName(URL_PATTERN_TAG).item(0).getTextContent());
             }
         } catch (ParserConfigurationException | IOException | SAXException e) {
-            throw new RuntimeException("Error during parsing file by path: " + path, e);
+            throw new RuntimeException("Error during parsing file ", e);
         }
 
         deploymentDescriptor.setServletDefinitions(new ArrayList<>(servletDefinitionMap.values()));
