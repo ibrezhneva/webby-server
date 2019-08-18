@@ -1,0 +1,70 @@
+
+            ===================================================
+                    Running The Webby Servlet Container
+            ===================================================
+
+Webby Server 1.0 requires a Java Standard Edition Runtime
+Environment (JRE) version 8 or later.
+
+=============================
+Running With JRE 8 Or Later
+=============================
+
+(1) Download and Install a Java SE Runtime Environment (JRE)
+
+(1.1) Download a Java SE Runtime Environment (JRE),
+      release version 8 or later, from
+      http://www.oracle.com/technetwork/java/javase/downloads/index.html
+
+(1.2) Install the JRE according to the instructions included with the
+      release.
+
+      You may also use a full Java Development Kit (JDK) rather than just
+      a JRE.
+
+
+(2) Download and Install Webby Server
+
+(2.1) Unpack the binary distribution so that it resides in its own
+      directory (conventionally named "webby-server-[version]").
+
+NOTE:  As an alternative to downloading a binary distribution, you can
+create your own from the Webby source code.
+You can do the full "release" build and find the created distribution in the
+"target" directory and then proceed with unpacking as above.
+
+
+(3) Start Up Webby Server
+
+(3.1) The server can be started by executing the following command:
+
+  On *nix:
+
+      /bin/startup.sh
+
+(3.2) After startup, the web applications will be available by visiting:
+
+      http://localhost:8180/
+
+
+(4) Shut Down Webby Server
+
+(4.1) The server can be shut down by executing the following command:
+
+  On *nix:
+
+      /bin/shutdown.sh
+
+
+==========================
+Webby Server Directories
+==========================
+
+ * bin  - Startup and shutdown scripts
+
+ * lib  - Libraries and classes used by Webby Server, added to classpath
+
+ * logs - Log and output files
+
+ * webapps - Automatically loaded web applications
+
