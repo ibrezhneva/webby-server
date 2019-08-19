@@ -2,7 +2,7 @@ package com.ibrezhneva.webby.server.service;
 
 import com.ibrezhneva.webby.server.entity.model.WebApp;
 import com.ibrezhneva.webby.server.entity.model.WebAppContainer;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -20,17 +20,6 @@ class WebAppCreatorTest {
     private static final String DEST_PATH = WEBAPPS_DIR + File.separator + WEBAPP_NAME;
     private static final String WAR_FILE_PATH = DEST_PATH + ".war";
 
-    @BeforeEach
-    void removeUnpackedWar() throws IOException {
-        if (Files.notExists(Paths.get(DEST_PATH))) {
-            return;
-        }
-        Files.walk(Paths.get(DEST_PATH))
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
-    }
-
     @Test
     void testCreateWebApp() {
         WebAppContainer webAppContainer = new WebAppContainer();
@@ -40,5 +29,16 @@ class WebAppCreatorTest {
         assertNotNull(webApp);
         assertEquals(WEBAPP_NAME, webApp.getAppFolder());
         assertTrue(webApp.getServletPathToClassMap().containsKey("/"));
+    }
+
+    @AfterEach
+    void removeUnpackedWar() throws IOException {
+        if (Files.notExists(Paths.get(DEST_PATH))) {
+            return;
+        }
+        Files.walk(Paths.get(DEST_PATH))
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
     }
 }
