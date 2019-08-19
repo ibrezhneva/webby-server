@@ -5,30 +5,33 @@ import com.ibrezhneva.webby.server.service.RequestHandler;
 import com.ibrezhneva.webby.server.service.WebAppCreator;
 import com.ibrezhneva.webby.server.service.WebAppPathWatcher;
 import lombok.extern.slf4j.Slf4j;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.*;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class Server {
-    private static final String CONFIGURATION_YAML = "configuration.yaml";
+    private ServerConfig serverConfig;
     private boolean isShutdown;
     private ThreadPoolExecutor requestHandlerExecutor;
     private WebAppPathWatcher webAppPathWatcher;
     private WebAppContainer webAppContainer;
 
+    public Server(ServerConfig serverConfig) {
+        this.serverConfig = serverConfig;
+    }
+
     public void start() {
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop, "Server-shutdown-thread"));
-
         webAppContainer = new WebAppContainer();
         webAppPathWatcher = new WebAppPathWatcher(new WebAppCreator(webAppContainer));
+        webAppPathWatcher.setWebappsPathString(serverConfig.getPathToWebApps());
+        webAppPathWatcher.setWarName(serverConfig.getWarName());
         new Thread(webAppPathWatcher).start();
-        ServerConfig serverConfig = getServerConfigFromYaml(CONFIGURATION_YAML);
 
         requestHandlerExecutor = new ThreadPoolExecutor(1,
                 serverConfig.getMaxThreads(),
@@ -54,14 +57,5 @@ public class Server {
         requestHandlerExecutor.shutdown();
         webAppContainer.destroyWebApps();
         log.info("Server stopped");
-    }
-
-    ServerConfig getServerConfigFromYaml(String configYamlFile) {
-        try (InputStream inputStream = Server.class.getClassLoader().getResourceAsStream(configYamlFile)) {
-            Yaml yaml = new Yaml(new Constructor(ServerConfig.class));
-            return yaml.loadAs(inputStream, ServerConfig.class);
-        } catch (IOException e) {
-            throw new RuntimeException("Error during getting server configuration from yaml", e);
-        }
     }
 }

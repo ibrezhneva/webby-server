@@ -8,4 +8,6 @@ public class ServerConfig {
     private int maxThreads;
     private int keepAliveTimeout;
     private int acceptCount;
+    private String pathToWebApps;
+    private String warName;
 }

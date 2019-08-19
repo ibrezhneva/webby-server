@@ -6,18 +6,18 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class ServerTest {
+class ServerConfigurationTest {
     private static final String CONFIGURATION_YAML = "configuration.yaml";
 
     @Test
     @DisplayName("Parse server config from yaml")
     void testGetServerConfigFromYaml() {
-        Server server = new Server();
-        ServerConfig serverConfig = server.getServerConfigFromYaml(CONFIGURATION_YAML);
+        ServerConfig serverConfig = Starter.getServerConfigFromYaml(CONFIGURATION_YAML);
         assertNotNull(serverConfig);
-        assertEquals(serverConfig.getPort(), 8180);
-        assertEquals(serverConfig.getMaxThreads(), 20);
-        assertEquals(serverConfig.getKeepAliveTimeout(), 60);
-        assertEquals(serverConfig.getAcceptCount(), 10);
+        assertEquals(8180, serverConfig.getPort());
+        assertEquals(20, serverConfig.getMaxThreads());
+        assertEquals( 60, serverConfig.getKeepAliveTimeout());
+        assertEquals(10, serverConfig.getAcceptCount());
+        assertEquals("webapps", serverConfig.getPathToWebApps());
     }
 }

@@ -1,24 +1,31 @@
 package com.ibrezhneva.webby.server.util;
 
 import com.ibrezhneva.webby.server.entity.model.AppServletRequest;
+import com.ibrezhneva.webby.server.entity.model.RequestInputStream;
 import lombok.Cleanup;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class RequestParserTest {
 
-    private static final String requestString = "GET /app/index.html HTTP/1.1\n" +
-            "Host: localhost:3000\n" +
-            "Connection: keep-alive\n" +
-            "Cache-Control: max-age=0\n" +
-            "Upgrade-Insecure-Requests: 1\n" +
-            "Content-Type: text/html; charset=utf-8\n" +
-            "Cookie: name=F\n" +
-            "\n";
+    private static final String requestString = "GET /app/index.html HTTP/1.1\r\n" +
+            "Host: localhost:3000\r\n" +
+            "Connection: keep-alive\r\n" +
+            "Upgrade-Insecure-Requests: 1\r\n" +
+            "Content-Type: text/html; charset=utf-8\r\n" +
+            "Content-Length: 5\r\n" +
+            "Cookie: name=F\r\n" +
+            "\r\n" +
+            "12345";
 
     @Test
     @DisplayName("Verify Uri, Method and Protocol")
@@ -38,7 +45,7 @@ class RequestParserTest {
         request.setUri("/app/products/all");
         RequestParser.injectWebAppNameAndServletPath(request);
         assertEquals("app", request.getWebAppName());
-        assertEquals("products/all", request.getServletPath());
+        assertEquals("/products/all", request.getServletPath());
     }
 
     @Test
@@ -51,13 +58,31 @@ class RequestParserTest {
     }
 
     @Test
-    @DisplayName("Verify request parsing")
+    @DisplayName("Verify Headers")
+    void testInjectHeaders() throws IOException {
+        AppServletRequest request = new AppServletRequest();
+        byte[] requestStringBytes = requestString.getBytes();
+        @Cleanup InputStream inputStream = new ByteArrayInputStream(requestStringBytes);
+        RequestInputStream reader = new RequestInputStream(inputStream);
+        reader.readLine();
+        RequestParser.injectHeaders(request, reader);
+
+        assertEquals("localhost:3000", request.getHeader("Host"));
+        assertEquals("keep-alive", request.getHeader("Connection"));
+        assertEquals("1", request.getHeader("Upgrade-Insecure-Requests"));
+        assertEquals("text/html; charset=utf-8", request.getHeader("Content-Type"));
+        assertEquals("5", request.getHeader("Content-Length"));
+    }
+
+    @Test
+    @DisplayName("Verify request body")
     void testParseRequest() throws IOException {
         byte[] requestStringBytes = requestString.getBytes();
         try (InputStream inputStream = new ByteArrayInputStream(requestStringBytes)) {
             AppServletRequest appServletRequest = RequestParser.parseRequest(inputStream);
             assertNotNull(appServletRequest);
+            String actualBody = IOUtils.toString(appServletRequest.getInputStream(), StandardCharsets.UTF_8);
+            assertEquals("12345", actualBody);
         }
     }
-
 }

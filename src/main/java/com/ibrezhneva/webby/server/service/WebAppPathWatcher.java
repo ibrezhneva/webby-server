@@ -8,25 +8,30 @@ import java.nio.file.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WebAppPathWatcher implements Runnable {
-    private static final String WEBAPPS_FOLDER_NAME = "webapps";
+    private static final String DEFAULT_WEBAPPS_PATH = "webapps";
     private static final String WAR_EXTENSION = ".war";
 
-    private WebAppCreator webAppCreator;
     private AtomicBoolean isShutdown = new AtomicBoolean();
+    private WebAppCreator webAppCreator;
+    private String webappsPathString;
+    private String warName;
 
     public WebAppPathWatcher(WebAppCreator webAppCreator) {
         this.webAppCreator = webAppCreator;
+        this.webappsPathString = DEFAULT_WEBAPPS_PATH;
     }
 
     @SneakyThrows
     private void scan() {
         @Cleanup WatchService watchService = FileSystems.getDefault().newWatchService();
-        Path webappsPath = Paths.get(new File(WEBAPPS_FOLDER_NAME).getCanonicalPath());
-
-        Files.walk(webappsPath)
-                .filter(e -> e.getFileName().toString().endsWith(WAR_EXTENSION))
-                .forEach(e -> webAppCreator.createWebApp(e.toString()));
-
+        Path webappsPath = Paths.get(new File(webappsPathString).getCanonicalPath());
+        if(warName == null) {
+            Files.walk(webappsPath)
+                    .filter(e -> e.getFileName().toString().endsWith(WAR_EXTENSION))
+                    .forEach(e -> webAppCreator.createWebApp(e.toString()));
+        } else {
+            webAppCreator.createWebApp(new File(webappsPathString, warName).getPath());
+        }
         webappsPath.register(watchService,
                 StandardWatchEventKinds.ENTRY_CREATE,
                 StandardWatchEventKinds.ENTRY_MODIFY);
@@ -49,5 +54,17 @@ public class WebAppPathWatcher implements Runnable {
 
     public void setShutdown(boolean isShutdown) {
         this.isShutdown.set(isShutdown);
+    }
+
+    public void setWebappsPathString(String webappsPathString) {
+        if (webappsPathString != null) {
+            this.webappsPathString = webappsPathString;
+        } else {
+            this.webappsPathString = DEFAULT_WEBAPPS_PATH;
+        }
+    }
+
+    public void setWarName(String warName) {
+        this.warName = warName;
     }
 }

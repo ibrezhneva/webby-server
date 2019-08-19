@@ -6,13 +6,13 @@ import com.ibrezhneva.webby.server.entity.http.HttpMethod;
 import com.ibrezhneva.webby.server.entity.http.HttpStatus;
 import com.ibrezhneva.webby.server.entity.model.AppServletInputStream;
 import com.ibrezhneva.webby.server.entity.model.AppServletRequest;
+import com.ibrezhneva.webby.server.entity.model.RequestInputStream;
 import com.ibrezhneva.webby.server.exception.ServerException;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 @Slf4j
 public abstract class RequestParser {
     public static AppServletRequest parseRequest(InputStream inputStream) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        RequestInputStream reader = new RequestInputStream(inputStream);
         try {
             String line = reader.readLine();
             AppServletRequest request = new AppServletRequest();
@@ -30,6 +30,11 @@ public abstract class RequestParser {
             injectWebAppNameAndServletPath(request);
             injectQueryString(request);
             injectHeaders(request, reader);
+
+            if (request.getIntHeader(HttpHeaderName.CONTENT_LENGTH.getName()) > 0 ||
+                    (request.getHeader(HttpHeaderName.TRANSFER_ENCODING.getName()) != null)) {
+                injectInputStream(request, inputStream);
+            }
             return request;
         } catch (Exception e) {
             log.error("Error during request parsing", e);
@@ -48,7 +53,7 @@ public abstract class RequestParser {
     static void injectWebAppNameAndServletPath(AppServletRequest request) {
         String[] splitUri = request.getRequestURI().split("/", 3);
         request.setWebAppName(splitUri[1]);
-        if(splitUri.length < 3) {
+        if (splitUri.length < 3) {
             request.setServletPath("/");
             return;
         }
@@ -64,7 +69,7 @@ public abstract class RequestParser {
         }
     }
 
-    static void injectHeaders(AppServletRequest request, BufferedReader reader) throws IOException {
+    static void injectHeaders(AppServletRequest request, RequestInputStream reader) throws IOException {
         List<HttpHeader> headers = new ArrayList<>();
         String line;
         while (!(line = reader.readLine()).isEmpty()) {
@@ -72,6 +77,17 @@ public abstract class RequestParser {
             headers.add(new HttpHeader(splitString[0], splitString[1]));
         }
         request.setHeaders(headers);
+    }
+
+    private static void injectInputStream(AppServletRequest request, InputStream inputStream) throws IOException {
+        int nReady;
+        if ((nReady = inputStream.available()) > 0) {
+            byte[] bytes = new byte[nReady];
+            inputStream.read(bytes);
+            InputStream bodyInputStream = new ByteArrayInputStream(bytes);
+            AppServletInputStream servletInputStream = new AppServletInputStream(bodyInputStream);
+            request.setInputStream(servletInputStream);
+        }
     }
 
 }
