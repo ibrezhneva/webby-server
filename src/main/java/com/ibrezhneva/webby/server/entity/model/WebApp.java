@@ -2,16 +2,15 @@ package com.ibrezhneva.webby.server.entity.model;
 
 import com.ibrezhneva.webby.server.entity.WebAppClassLoader;
 import com.ibrezhneva.webby.server.entity.http.HttpHeader;
+import com.ibrezhneva.webby.server.entity.http.HttpHeaderName;
 import com.ibrezhneva.webby.server.entity.http.HttpResponseConstants;
 import lombok.Data;
 
 import javax.servlet.GenericServlet;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Data
 public class WebApp {
@@ -64,13 +63,30 @@ public class WebApp {
     }
 
     private void setResponseHeaders(AppServletResponse response) {
-        Optional<List<HttpHeader>> optionalHeaders = Optional.ofNullable(response.getHeaders());
         StringBuilder headersBuiltString = new StringBuilder();
-        if (optionalHeaders.isPresent()) {
-            List<HttpHeader> headers = optionalHeaders.get();
-            headers.forEach(e -> headersBuiltString.append(e.toString()).append("\n"));
+        List<HttpHeader> headers = response.getHeaders();
+        headers.forEach(e -> headersBuiltString.append(e.toString()).append(HttpResponseConstants.CRLF));
+        if (response.getCookies().size() > 0) {
+            HttpHeader cookiesHeader = getCookiesHeader(response);
+            headersBuiltString.append(cookiesHeader.toString()).append(HttpResponseConstants.CRLF);
         }
         headersBuiltString.append(HttpResponseConstants.CRLF);
         ((AppServletOutputStream) response.getOutputStream()).setHeaders(headersBuiltString.toString());
+    }
+
+    HttpHeader getCookiesHeader(AppServletResponse response) {
+        List<Cookie> cookies = response.getCookies();
+        StringJoiner joiner = new StringJoiner("; ");
+        for (Cookie cookie : cookies) {
+            joiner.add(cookieToString(cookie));
+        }
+        String headerName = HttpHeaderName.COOKIE.getName();
+        String headerValue = joiner.toString();
+
+        return new HttpHeader(headerName, headerValue);
+    }
+
+    private String cookieToString(Cookie cookie) {
+        return cookie.getName() + "=" + cookie.getValue();
     }
 }

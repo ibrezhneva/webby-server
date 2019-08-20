@@ -10,11 +10,11 @@ import com.ibrezhneva.webby.server.entity.model.RequestInputStream;
 import com.ibrezhneva.webby.server.exception.ServerException;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.servlet.http.Cookie;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +29,7 @@ public abstract class RequestParser {
             injectUriAndMethodAndProtocol(request, line);
             injectWebAppNameAndServletPath(request);
             injectQueryString(request);
+            injectParameters(request);
             injectHeaders(request, reader);
 
             if (request.getIntHeader(HttpHeaderName.CONTENT_LENGTH.getName()) > 0 ||
@@ -69,19 +70,55 @@ public abstract class RequestParser {
         }
     }
 
+    static void injectParameters(AppServletRequest request) {
+        String queryString = request.getQueryString();
+        Map<String, String[]> parameters = new HashMap<>();
+        if (queryString == null) {
+            request.setParameters(parameters);
+            return;
+        }
+        Map<String, List<String>> parameterValuesListMap = new HashMap<>();
+        String[] splitParameters = queryString.split("&");
+        for (String queryParameter : splitParameters) {
+            String[] splitParameter = queryParameter.split("=");
+
+            String key = splitParameter[0];
+            String value = splitParameter[1];
+            List<String> paramValueList = Optional.ofNullable(parameterValuesListMap.get(key))
+                    .orElse(new ArrayList<>());
+            paramValueList.add(value);
+            parameterValuesListMap.put(key, paramValueList);
+        }
+        parameterValuesListMap.forEach((k, v) -> parameters.put(k, v.toArray(new String[v.size()])));
+        request.setParameters(parameters);
+    }
+
     static void injectHeaders(AppServletRequest request, RequestInputStream reader) throws IOException {
         List<HttpHeader> headers = new ArrayList<>();
         String line;
         while (!(line = reader.readLine()).isEmpty()) {
             String[] splitString = line.split(": ");
+            if (splitString[0].equalsIgnoreCase(HttpHeaderName.COOKIE.getName())) {
+                injectCookies(request, splitString[1]);
+            }
             headers.add(new HttpHeader(splitString[0], splitString[1]));
         }
         request.setHeaders(headers);
     }
 
+    static void injectCookies(AppServletRequest request, String cookies) {
+        String[] splitCookieString = cookies.split("; ");
+        Cookie[] cookieArray = new Cookie[splitCookieString.length];
+        for (int i = 0; i < splitCookieString.length; i++) {
+            String[] splitNameValue = splitCookieString[i].split("=");
+            cookieArray[i] = new Cookie(splitNameValue[0], splitNameValue[1]);
+        }
+        request.setCookies(cookieArray);
+    }
+
     private static void injectInputStream(AppServletRequest request, InputStream inputStream) throws IOException {
-        int nReady;
-        if ((nReady = inputStream.available()) > 0) {
+        int nReady = inputStream.available();
+        if (nReady > 0) {
             byte[] bytes = new byte[nReady];
             inputStream.read(bytes);
             InputStream bodyInputStream = new ByteArrayInputStream(bytes);

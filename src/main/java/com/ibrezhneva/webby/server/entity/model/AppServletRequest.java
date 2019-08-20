@@ -8,9 +8,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.servlet.ServletInputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import javax.servlet.http.Cookie;
+import java.util.*;
 
 @Setter
 public class AppServletRequest extends HttpServletRequestAdapter {
@@ -19,11 +18,17 @@ public class AppServletRequest extends HttpServletRequestAdapter {
     private List<HttpHeader> headers;
     private String uri;
     private String queryString;
+    private Cookie[] cookies;
     private String servletPath;
     @Getter
     private String webAppName;
     private Map<String, String[]> parameters;
     private String protocol;
+
+    @Override
+    public Cookie[] getCookies() {
+        return cookies;
+    }
 
     @Override
     public String getHeader(String name) {
@@ -69,6 +74,21 @@ public class AppServletRequest extends HttpServletRequestAdapter {
     @Override
     public String getParameter(String name) {
         return parameters.get(name)[0];
+    }
+
+    @Override
+    public Enumeration<String> getParameterNames() {
+        return Collections.enumeration(parameters.keySet());
+    }
+
+    @Override
+    public String[] getParameterValues(String name) {
+        return parameters.get(name);
+    }
+
+    @Override
+    public Map<String, String[]> getParameterMap() {
+        return parameters;
     }
 
     @Override

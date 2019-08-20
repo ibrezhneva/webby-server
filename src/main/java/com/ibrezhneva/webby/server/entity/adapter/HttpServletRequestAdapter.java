@@ -224,7 +224,7 @@ public class HttpServletRequestAdapter implements HttpServletRequest {
 
     @Override
     public String[] getParameterValues(String name) {
-        return new String[0];
+        throw new UnsupportedOperationException("Method is not supported");
     }
 
     @Override

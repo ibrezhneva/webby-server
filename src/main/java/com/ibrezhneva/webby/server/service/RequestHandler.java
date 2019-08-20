@@ -46,7 +46,7 @@ public class RequestHandler implements Runnable {
                         if (webApp.isPresent()) {
                             webApp.get().process(request, response);
                         } else {
-                            getResourceByPath(request, outputStream);
+                            processResourceByPath(request, outputStream);
                         }
                     } catch (ServerException e) {
                         writeResponseDirectly(outputStream, e.getHttpStatus(), e.getMessage().getBytes());
@@ -78,7 +78,7 @@ public class RequestHandler implements Runnable {
         bufferedOutputStream.write(bytes);
     }
 
-    private void getResourceByPath(AppServletRequest request, OutputStream outputStream) {
+    private void processResourceByPath(AppServletRequest request, OutputStream outputStream) {
         File resource = new File(request.getRequestURI().substring(1));
         try (FileInputStream inputStream = new FileInputStream(resource.getCanonicalPath())) {
             byte[] bytes = IOUtils.toByteArray(inputStream);

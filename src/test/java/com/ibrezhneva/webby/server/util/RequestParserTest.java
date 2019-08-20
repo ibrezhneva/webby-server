@@ -12,8 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class RequestParserTest {
 
@@ -58,6 +57,17 @@ class RequestParserTest {
     }
 
     @Test
+    @DisplayName("Verify Parameters")
+    void testInjectParameters() {
+        AppServletRequest request = new AppServletRequest();
+        request.setQueryString("name1=value1&name2=value2&name2=value3");
+        RequestParser.injectParameters(request);
+        String[] name2ParamValues = {"value2", "value3"};
+        assertArrayEquals(name2ParamValues, request.getParameterValues("name2"));
+        assertEquals("value1", request.getParameter("name1"));
+    }
+
+    @Test
     @DisplayName("Verify Headers")
     void testInjectHeaders() throws IOException {
         AppServletRequest request = new AppServletRequest();
@@ -72,6 +82,15 @@ class RequestParserTest {
         assertEquals("1", request.getHeader("Upgrade-Insecure-Requests"));
         assertEquals("text/html; charset=utf-8", request.getHeader("Content-Type"));
         assertEquals("5", request.getHeader("Content-Length"));
+    }
+
+    @Test
+    @DisplayName("Verify Cookies")
+    void testInjectCookies() {
+        AppServletRequest request = new AppServletRequest();
+        String cookies = "name=value; name2=value2; name3=value3";
+        RequestParser.injectCookies(request, cookies);
+        assertEquals(3, request.getCookies().length);
     }
 
     @Test

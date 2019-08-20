@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.Cookie;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -21,8 +22,15 @@ public class AppServletResponse extends HttpServletResponseAdapter {
     @Getter
     private List<HttpHeader> headers = new ArrayList<>();
     @Getter
+    private List<Cookie> cookies = new ArrayList<>();
+    @Getter
     private HttpStatus httpStatus;
     private int status;
+
+    @Override
+    public void addCookie(Cookie cookie) {
+        cookies.add(cookie);
+    }
 
     @Override
     public void sendRedirect(String location) throws IOException {
