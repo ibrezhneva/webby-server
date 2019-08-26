@@ -28,13 +28,22 @@ class RequestParserTest {
 
     @Test
     @DisplayName("Verify Uri, Method and Protocol")
-    void testInjectUriAndMethodAndProtocol() {
+    void testInjectMethodAndProtocol() {
         AppServletRequest request = new AppServletRequest();
         String requestLine = "GET /app/index.html HTTP/1.1";
-        RequestParser.injectUriAndMethodAndProtocol(request, requestLine);
+        RequestParser.injectMethodAndProtocol(request, requestLine);
         assertEquals("GET", request.getMethod());
-        assertEquals("/app/index.html", request.getRequestURI());
         assertEquals("HTTP/1.1", request.getProtocol());
+    }
+
+    @Test
+    @DisplayName("Verify URI and Query string")
+    void testInjectQueryStringAndURI() {
+        AppServletRequest request = new AppServletRequest();
+        String uri = "/app/users/default?fullname=Fadi%20Fakhouri#top";
+        RequestParser.injectQueryStringAndURI(request, uri);
+        assertEquals("/app/users/default", request.getRequestURI());
+        assertEquals("fullname=Fadi%20Fakhouri", request.getQueryString());
     }
 
     @Test
@@ -45,15 +54,6 @@ class RequestParserTest {
         RequestParser.injectWebAppNameAndServletPath(request);
         assertEquals("app", request.getWebAppName());
         assertEquals("/products/all", request.getServletPath());
-    }
-
-    @Test
-    @DisplayName("Verify Query string")
-    void testInjectQueryString() {
-        AppServletRequest request = new AppServletRequest();
-        request.setUri("/app/users/default?fullname=Fadi%20Fakhouri#top");
-        RequestParser.injectQueryString(request);
-        assertEquals("fullname=Fadi%20Fakhouri", request.getQueryString());
     }
 
     @Test

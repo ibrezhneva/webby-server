@@ -23,7 +23,6 @@ public class PostRequestITest {
         URL url = new URL("http://localhost:8180/test-only-post/hello");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
-        connection.setRequestProperty("User-Agent", "Mozilla/5.0");
 
         connection.setDoOutput(true);
         try (OutputStream outputStream = connection.getOutputStream()) {
@@ -40,7 +39,6 @@ public class PostRequestITest {
                 response.append(inputLine);
             }
         }
-        System.out.println(response.toString());
         assertEquals("Hello from POST!", response.toString());
     }
 

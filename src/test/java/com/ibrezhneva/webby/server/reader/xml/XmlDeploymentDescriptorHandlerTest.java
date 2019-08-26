@@ -21,20 +21,22 @@ class XmlDeploymentDescriptorHandlerTest {
     @DisplayName("Parse deployment descriptor xml")
     void testGetDeploymentDescriptor() {
         List<ServletDefinition> servletDefinitions = new ArrayList<>();
+        ServletDefinition servletDefinition0 = new ServletDefinition();
+        servletDefinition0.setClassName("com.ibrezhneva.webby.server.entity.servlet.GetAllProductServlet");
+        servletDefinition0.setUrlPattern("/products");
+        servletDefinitions.add(servletDefinition0);
+
         ServletDefinition servletDefinition1 = new ServletDefinition();
-        servletDefinition1.setName("getAllProductServlet");
         servletDefinition1.setClassName("com.ibrezhneva.webby.server.entity.servlet.GetAllProductServlet");
         servletDefinition1.setUrlPattern("/");
         servletDefinitions.add(servletDefinition1);
 
         ServletDefinition servletDefinition2 = new ServletDefinition();
-        servletDefinition2.setName("addProductServlet");
         servletDefinition2.setClassName("com.ibrezhneva.webby.server.entity.servlet.AddProductServlet");
         servletDefinition2.setUrlPattern("/product/add");
         servletDefinitions.add(servletDefinition2);
 
         ServletDefinition servletDefinition3 = new ServletDefinition();
-        servletDefinition3.setName("updateProductServlet");
         servletDefinition3.setClassName("com.ibrezhneva.webby.server.entity.servlet.UpdateProductServlet");
         servletDefinition3.setUrlPattern("/product/edit");
         servletDefinitions.add(servletDefinition3);

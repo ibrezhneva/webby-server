@@ -1,21 +1,21 @@
 package com.ibrezhneva.webby.server.entity.model;
 
-import com.ibrezhneva.webby.server.entity.WebAppClassLoader;
-import com.ibrezhneva.webby.server.entity.http.HttpHeader;
-import com.ibrezhneva.webby.server.entity.http.HttpHeaderName;
-import com.ibrezhneva.webby.server.entity.http.HttpResponseConstants;
+import com.ibrezhneva.webby.server.entity.http.HttpStatus;
+import com.ibrezhneva.webby.server.exception.ServerException;
 import lombok.Data;
 
 import javax.servlet.GenericServlet;
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
-import java.util.*;
+import java.net.URLClassLoader;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @Data
 public class WebApp {
     private String appFolder;
-    private WebAppClassLoader classLoader;
+    private URLClassLoader classLoader;
     private Map<String, Class<?>> servletPathToClassMap;
     private Map<String, HttpServlet> servletPathToServletMap = new HashMap<>();
 
@@ -25,22 +25,20 @@ public class WebApp {
 
     public void process(AppServletRequest request, AppServletResponse response) {
         HttpServlet servlet;
-        String requestURI = request.getRequestURI();
-        Optional<HttpServlet> servletOptional = Optional.ofNullable(servletPathToServletMap.get(requestURI));
+        String servletPath = request.getServletPath();
+        String urlPattern = getUrlPattern(servletPath);
+        Optional<HttpServlet> servletOptional = Optional.ofNullable(servletPathToServletMap.get(urlPattern));
         try {
             if (!servletOptional.isPresent()) {
-                Class<?> servletClass = servletPathToClassMap.get(request.getServletPath());
+                Class<?> servletClass = servletPathToClassMap.get(urlPattern);
                 servlet = (HttpServlet) servletClass.getDeclaredConstructor().newInstance();
-                servletPathToServletMap.put(requestURI, servlet);
+                servletPathToServletMap.put(urlPattern, servlet);
                 servlet.init();
             } else {
                 servlet = servletOptional.get();
             }
             servlet.service(request, response);
-            setResponseStatusLine(response);
-            setResponseHeaders(response);
             response.getWriter().flush();
-
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("Error during servlet instantiation", e);
         } catch (ServletException e) {
@@ -54,39 +52,19 @@ public class WebApp {
         servletPathToServletMap.values().forEach(GenericServlet::destroy);
     }
 
-    private void setResponseStatusLine(AppServletResponse response) {
-        StringBuilder responseStatusLine = new StringBuilder();
-        responseStatusLine.append(HttpResponseConstants.HTTP_VERSION).append(" ");
-        responseStatusLine.append(response.getHttpStatus());
-        responseStatusLine.append(HttpResponseConstants.CRLF);
-        ((AppServletOutputStream) response.getOutputStream()).setResponseStatusLine(responseStatusLine.toString());
-    }
-
-    private void setResponseHeaders(AppServletResponse response) {
-        StringBuilder headersBuiltString = new StringBuilder();
-        List<HttpHeader> headers = response.getHeaders();
-        headers.forEach(e -> headersBuiltString.append(e.toString()).append(HttpResponseConstants.CRLF));
-        if (response.getCookies().size() > 0) {
-            HttpHeader cookiesHeader = getCookiesHeader(response);
-            headersBuiltString.append(cookiesHeader.toString()).append(HttpResponseConstants.CRLF);
+    private String getUrlPattern(String uri) {
+        for (String urlPattern : servletPathToClassMap.keySet()) {
+            if(urlPattern.contains("*")) {
+                if(uri.matches(urlPattern.replace("*", ".*"))) {
+                    return urlPattern;
+                }
+            } else {
+                if(uri.equals(urlPattern)) {
+                    return uri;
+                }
+            }
         }
-        headersBuiltString.append(HttpResponseConstants.CRLF);
-        ((AppServletOutputStream) response.getOutputStream()).setHeaders(headersBuiltString.toString());
+        throw new ServerException(HttpStatus.NOT_FOUND, "There is no page for " + uri);
     }
 
-    HttpHeader getCookiesHeader(AppServletResponse response) {
-        List<Cookie> cookies = response.getCookies();
-        StringJoiner joiner = new StringJoiner("; ");
-        for (Cookie cookie : cookies) {
-            joiner.add(cookieToString(cookie));
-        }
-        String headerName = HttpHeaderName.COOKIE.getName();
-        String headerValue = joiner.toString();
-
-        return new HttpHeader(headerName, headerValue);
-    }
-
-    private String cookieToString(Cookie cookie) {
-        return cookie.getName() + "=" + cookie.getValue();
-    }
 }

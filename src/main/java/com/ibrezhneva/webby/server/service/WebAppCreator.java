@@ -1,6 +1,5 @@
 package com.ibrezhneva.webby.server.service;
 
-import com.ibrezhneva.webby.server.entity.WebAppClassLoader;
 import com.ibrezhneva.webby.server.entity.model.WebApp;
 import com.ibrezhneva.webby.server.entity.model.WebAppContainer;
 import com.ibrezhneva.webby.server.reader.DeploymentDescriptorHandler;
@@ -12,8 +11,14 @@ import lombok.AllArgsConstructor;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -21,6 +26,7 @@ import java.util.stream.Collectors;
 public class WebAppCreator {
     private static final String DEPLOYMENT_DESCRIPTOR_FILE_PATH = "/WEB-INF/web.xml";
     private static final String WAR_EXTENSION = ".war";
+    private static final String JAR_EXTENSION = ".jar";
     private final DeploymentDescriptorHandler descriptorHandler = new XmlDeploymentDescriptorHandler();
 
     private WebAppContainer webAppContainer;
@@ -43,7 +49,7 @@ public class WebAppCreator {
     private WebApp initWebApp(String appName, String deploymentDescriptorPath, DeploymentDescriptor deploymentDescriptor) {
         WebApp webApp = new WebApp(appName);
         Path webInfPath = Paths.get(deploymentDescriptorPath).getParent();
-        webApp.setClassLoader(new WebAppClassLoader(webInfPath));
+        webApp.setClassLoader(getClassLoader(webInfPath));
         Map<String, Class<?>> servletPathToClassMap = deploymentDescriptor.getServletDefinitions()
                 .stream()
                 .collect(Collectors.toMap(ServletDefinition::getUrlPattern,
@@ -51,6 +57,27 @@ public class WebAppCreator {
 
         webApp.setServletPathToClassMap(servletPathToClassMap);
         return webApp;
+    }
+
+    private URLClassLoader getClassLoader(Path webInfPath) {
+        try {
+            List<URL> paths = Files.walk(webInfPath)
+                    .filter(f -> f.toString().endsWith(JAR_EXTENSION))
+                    .map(this::getUrlFromPath)
+                    .collect(Collectors.toList());
+            paths.add(getUrlFromPath(Paths.get(webInfPath.toString(), "classes")));
+            return new URLClassLoader(paths.toArray(new URL[0]));
+        } catch (IOException e) {
+            throw new RuntimeException("Error during Class paths loading", e);
+        }
+    }
+
+    private URL getUrlFromPath(Path path) {
+        try {
+            return path.toUri().toURL();
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Error during getting URL from path  " + path, e);
+        }
     }
 
     private Class<?> getClass(WebApp webApp, String className) {

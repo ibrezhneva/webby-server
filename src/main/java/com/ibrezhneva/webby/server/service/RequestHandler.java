@@ -3,7 +3,10 @@ package com.ibrezhneva.webby.server.service;
 
 import com.ibrezhneva.webby.server.entity.http.HttpResponseConstants;
 import com.ibrezhneva.webby.server.entity.http.HttpStatus;
-import com.ibrezhneva.webby.server.entity.model.*;
+import com.ibrezhneva.webby.server.entity.model.AppServletRequest;
+import com.ibrezhneva.webby.server.entity.model.AppServletResponse;
+import com.ibrezhneva.webby.server.entity.model.WebApp;
+import com.ibrezhneva.webby.server.entity.model.WebAppContainer;
 import com.ibrezhneva.webby.server.exception.ServerException;
 import com.ibrezhneva.webby.server.util.RequestParser;
 import lombok.Cleanup;
@@ -33,39 +36,26 @@ public class RequestHandler implements Runnable {
     @SneakyThrows
     private void handle() {
         @Cleanup Socket socket = httpSocket;
-        while (!socket.isClosed()) {
-            try (InputStream inputStream = socket.getInputStream();
-                 OutputStream outputStream = socket.getOutputStream()) {
-                if (inputStream.available() > 0) {
-                    try {
-                        AppServletRequest request = RequestParser.parseRequest(inputStream);
-                        AppServletResponse response = createAppServletResponse(outputStream);
+        InputStream inputStream = httpSocket.getInputStream();
+        OutputStream outputStream = httpSocket.getOutputStream();
+        while (inputStream.available() > 0) {
+            try {
+                AppServletRequest request = RequestParser.parseRequest(inputStream);
+                AppServletResponse response = new AppServletResponse(outputStream);
 
-                        String requestWebAppName = request.getWebAppName();
-                        Optional<WebApp> webApp = webAppContainer.getWebApp(requestWebAppName);
-                        if (webApp.isPresent()) {
-                            webApp.get().process(request, response);
-                        } else {
-                            processResourceByPath(request, outputStream);
-                        }
-                    } catch (ServerException e) {
-                        writeResponseDirectly(outputStream, e.getHttpStatus(), e.getMessage().getBytes());
-                    } catch (Exception e) {
-                        writeResponseDirectly(outputStream, HttpStatus.INTERNAL_SERVER_ERROR, e.toString().getBytes());
-                    }
+                String requestWebAppName = request.getWebAppName();
+                Optional<WebApp> webApp = webAppContainer.getWebApp(requestWebAppName);
+                if (webApp.isPresent()) {
+                    webApp.get().process(request, response);
+                } else {
+                    processResourceByPath(request, outputStream);
                 }
+            } catch (ServerException e) {
+                writeResponseDirectly(outputStream, e.getHttpStatus(), e.getMessage().getBytes());
+            } catch (Exception e) {
+                writeResponseDirectly(outputStream, HttpStatus.INTERNAL_SERVER_ERROR, e.toString().getBytes());
             }
         }
-    }
-
-    private AppServletResponse createAppServletResponse(OutputStream outputStream) {
-        AppServletResponse response = new AppServletResponse();
-        AppServletOutputStream servletOutputStream = new AppServletOutputStream(outputStream);
-        response.setOutputStream(servletOutputStream);
-
-        OutputStreamWriter streamWriter = new OutputStreamWriter(servletOutputStream);
-        response.setWriter(new PrintWriter(streamWriter, true));
-        return response;
     }
 
     @SneakyThrows

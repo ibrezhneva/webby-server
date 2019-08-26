@@ -22,7 +22,6 @@ public class GetRequestITest {
         URL url = new URL("http://localhost:8180/test-only-get");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
-        connection.setRequestProperty("User-Agent", "Mozilla/5.0");
 
         assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
         String headerField = connection.getHeaderField("Test-Header");
@@ -36,7 +35,6 @@ public class GetRequestITest {
                 response.append(inputLine);
             }
         }
-        System.out.println(response.toString());
         assertEquals("Hello from GET!", response.toString());
     }
 

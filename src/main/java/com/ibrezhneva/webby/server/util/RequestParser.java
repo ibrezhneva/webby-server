@@ -26,9 +26,8 @@ public abstract class RequestParser {
             String line = reader.readLine();
             AppServletRequest request = new AppServletRequest();
 
-            injectUriAndMethodAndProtocol(request, line);
+            injectMethodAndProtocol(request, line);
             injectWebAppNameAndServletPath(request);
-            injectQueryString(request);
             injectParameters(request);
             injectHeaders(request, reader);
 
@@ -43,12 +42,23 @@ public abstract class RequestParser {
         }
     }
 
-    static void injectUriAndMethodAndProtocol(AppServletRequest request, String requestLine) {
+    static void injectMethodAndProtocol(AppServletRequest request, String requestLine) {
         String[] splitString = requestLine.split(" ");
         HttpMethod httpMethod = HttpMethod.getByName(splitString[0]);
         request.setHttpMethod(httpMethod);
-        request.setUri(splitString[1]);
+
+        injectQueryStringAndURI(request, splitString[1]);
         request.setProtocol(splitString[2]);
+    }
+
+    static void injectQueryStringAndURI(AppServletRequest request, String requestURI) {
+        String[] splitUri = requestURI.split("\\?");
+        request.setUri(splitUri[0]);
+        Pattern pattern = Pattern.compile("\\?([^\\#]*)");
+        Matcher matcher = pattern.matcher(requestURI);
+        if (matcher.find()) {
+            request.setQueryString(matcher.group(1));
+        }
     }
 
     static void injectWebAppNameAndServletPath(AppServletRequest request) {
@@ -59,15 +69,6 @@ public abstract class RequestParser {
             return;
         }
         request.setServletPath("/" + splitUri[2]);
-    }
-
-    static void injectQueryString(AppServletRequest request) {
-        String uri = request.getRequestURI();
-        Pattern pattern = Pattern.compile("\\?([^\\#]*)");
-        Matcher matcher = pattern.matcher(uri);
-        if (matcher.find()) {
-            request.setQueryString(matcher.group(1));
-        }
     }
 
     static void injectParameters(AppServletRequest request) {
