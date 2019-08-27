@@ -28,7 +28,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.ibrezhneva.webby.server.app.Starter</mainClass>
+                            <mainClass>com.ibrezhneva.webby.Starter</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

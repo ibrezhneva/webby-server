@@ -1,0 +1,16 @@
+package com.ibrezhneva.webby.entity.http;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class HttpHeader {
+    private String name;
+    private String value;
+
+    @Override
+    public String toString() {
+        return name + ": " + value;
+    }
+}

@@ -8,17 +8,17 @@
 
     <servlet>
         <servlet-name>getAllProductServlet</servlet-name>
-        <servlet-class>com.ibrezhneva.webby.server.entity.servlet.GetAllProductServlet</servlet-class>
+        <servlet-class>com.ibrezhneva.webby.entity.servlet.GetAllProductServlet</servlet-class>
     </servlet>
 
     <servlet>
         <servlet-name>addProductServlet</servlet-name>
-        <servlet-class>com.ibrezhneva.webby.server.entity.servlet.AddProductServlet</servlet-class>
+        <servlet-class>com.ibrezhneva.webby.entity.servlet.AddProductServlet</servlet-class>
     </servlet>
 
     <servlet>
         <servlet-name>updateProductServlet</servlet-name>
-        <servlet-class>com.ibrezhneva.webby.server.entity.servlet.UpdateProductServlet</servlet-class>
+        <servlet-class>com.ibrezhneva.webby.entity.servlet.UpdateProductServlet</servlet-class>
     </servlet>
 
     <!-- Servlet Mappings -->
