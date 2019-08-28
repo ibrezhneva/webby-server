@@ -142,6 +142,9 @@ public class AppServletResponse extends HttpServletResponseAdapter {
 
         @Override
         public void flush() throws IOException {
+            if (!isChunkedEncoding) {
+                setIntHeader(HttpHeaderName.CONTENT_LENGTH.getName(), index);
+            }
             flushInternal();
             if (isChunkedEncoding) {
                 outputStream.write(String.valueOf(0).getBytes());
@@ -161,7 +164,7 @@ public class AppServletResponse extends HttpServletResponseAdapter {
                 isStatusLineWritten = true;
             }
             if (isChunkedEncoding) {
-                outputStream.write(String.valueOf(index).getBytes());
+                outputStream.write(Integer.toHexString(index).getBytes());
                 outputStream.write(HttpResponseConstants.CRLF_BYTES);
             }
             outputStream.write(buffer, 0, index);

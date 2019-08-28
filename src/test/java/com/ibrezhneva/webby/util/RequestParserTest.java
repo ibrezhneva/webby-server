@@ -41,7 +41,8 @@ class RequestParserTest {
     void testInjectQueryStringAndURI() {
         AppServletRequest request = new AppServletRequest();
         String uri = "/app/users/default?fullname=Fadi%20Fakhouri#top";
-        RequestParser.injectQueryStringAndURI(request, uri);
+        request.setAbsoluteUri(uri);
+        RequestParser.injectQueryStringAndURI(request);
         assertEquals("/app/users/default", request.getRequestURI());
         assertEquals("fullname=Fadi%20Fakhouri", request.getQueryString());
     }

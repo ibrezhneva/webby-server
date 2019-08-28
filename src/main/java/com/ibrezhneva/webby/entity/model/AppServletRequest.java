@@ -17,6 +17,8 @@ public class AppServletRequest extends HttpServletRequestAdapter {
     private HttpMethod httpMethod;
     private List<HttpHeader> headers;
     private String uri;
+    @Getter
+    private String absoluteUri;
     private String queryString;
     private Cookie[] cookies;
     private String servletPath;

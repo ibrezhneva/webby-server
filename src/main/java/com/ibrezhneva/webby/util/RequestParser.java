@@ -9,8 +9,10 @@ import com.ibrezhneva.webby.entity.model.AppServletRequest;
 import com.ibrezhneva.webby.entity.model.RequestInputStream;
 import com.ibrezhneva.webby.exception.ServerException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.httpclient.ChunkedInputStream;
 
 import javax.servlet.http.Cookie;
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,13 +29,18 @@ public abstract class RequestParser {
             AppServletRequest request = new AppServletRequest();
 
             injectMethodAndProtocol(request, line);
+            injectQueryStringAndURI(request);
             injectWebAppNameAndServletPath(request);
             injectParameters(request);
             injectHeaders(request, reader);
 
-            if (request.getIntHeader(HttpHeaderName.CONTENT_LENGTH.getName()) > 0 ||
-                    (request.getHeader(HttpHeaderName.TRANSFER_ENCODING.getName()) != null)) {
-                injectInputStream(request, inputStream);
+            if (HttpMethod.POST.getName().equals(request.getMethod())) {
+                int n;
+                if ((n = request.getIntHeader(HttpHeaderName.CONTENT_LENGTH.getName())) > 0) {
+                    injectInputStream(request, inputStream, n);
+                } else if (request.getHeader(HttpHeaderName.TRANSFER_ENCODING.getName()) != null) {
+                    injectChunkedInputStream(request, inputStream);
+                }
             }
             return request;
         } catch (Exception e) {
@@ -46,12 +53,12 @@ public abstract class RequestParser {
         String[] splitString = requestLine.split(" ");
         HttpMethod httpMethod = HttpMethod.getByName(splitString[0]);
         request.setHttpMethod(httpMethod);
-
-        injectQueryStringAndURI(request, splitString[1]);
+        request.setAbsoluteUri(splitString[1]);
         request.setProtocol(splitString[2]);
     }
 
-    static void injectQueryStringAndURI(AppServletRequest request, String requestURI) {
+    static void injectQueryStringAndURI(AppServletRequest request) {
+        String requestURI = request.getAbsoluteUri();
         String[] splitUri = requestURI.split("\\?");
         request.setUri(splitUri[0]);
         Pattern pattern = Pattern.compile("\\?([^\\#]*)");
@@ -117,15 +124,20 @@ public abstract class RequestParser {
         request.setCookies(cookieArray);
     }
 
-    private static void injectInputStream(AppServletRequest request, InputStream inputStream) throws IOException {
-        int nReady = inputStream.available();
-        if (nReady > 0) {
-            byte[] bytes = new byte[nReady];
-            inputStream.read(bytes);
-            InputStream bodyInputStream = new ByteArrayInputStream(bytes);
-            AppServletInputStream servletInputStream = new AppServletInputStream(bodyInputStream);
-            request.setInputStream(servletInputStream);
-        }
+    private static void injectInputStream(AppServletRequest request, InputStream inputStream, int n) throws IOException {
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+        byte[] bytes = new byte[n];
+        bufferedInputStream.read(bytes);
+        InputStream bodyInputStream = new ByteArrayInputStream(bytes);
+        AppServletInputStream servletInputStream = new AppServletInputStream(bodyInputStream);
+        request.setInputStream(servletInputStream);
+    }
+
+    private static void injectChunkedInputStream(AppServletRequest request, InputStream inputStream) throws IOException {
+        ChunkedInputStream chunkedInputStream = new ChunkedInputStream(inputStream);
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(chunkedInputStream);
+        AppServletInputStream servletInputStream = new AppServletInputStream(bufferedInputStream);
+        request.setInputStream(servletInputStream);
     }
 
 }

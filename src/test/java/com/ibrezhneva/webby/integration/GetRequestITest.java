@@ -12,6 +12,8 @@ import java.net.URL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GetRequestITest {
+    private static final String URL_STRING = "http://localhost:8180/test-only-get";
+    private static final String EXPECTED_RESPONSE = "Hello from GET!";
 
     @Test
     public void testGetRequest() throws Exception {
@@ -19,13 +21,15 @@ public class GetRequestITest {
         new Thread(r).start();
 
         Thread.sleep(1000);
-        URL url = new URL("http://localhost:8180/test-only-get");
+        URL url = new URL(URL_STRING);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
 
         assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
-        String headerField = connection.getHeaderField("Test-Header");
-        assertEquals("test-header123", headerField);
+        String testHeader = connection.getHeaderField("Test-Header");
+        assertEquals("test-header123", testHeader);
+        String contentLength = connection.getHeaderField("Content-Length");
+        assertEquals(EXPECTED_RESPONSE.length(), Integer.parseInt(contentLength));
 
         StringBuilder response = new StringBuilder();
         try (InputStreamReader streamReader = new InputStreamReader(connection.getInputStream());
@@ -35,7 +39,7 @@ public class GetRequestITest {
                 response.append(inputLine);
             }
         }
-        assertEquals("Hello from GET!", response.toString());
+        assertEquals(EXPECTED_RESPONSE, response.toString());
     }
 
     private void testServerStart() {
