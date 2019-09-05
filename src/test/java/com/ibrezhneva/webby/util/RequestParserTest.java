@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class RequestParserTest {
 
-    private static final String requestString = "GET /app/index.html HTTP/1.1\r\n" +
+    private static final String requestString = "POST /app/index.html HTTP/1.1\r\n" +
             "Host: localhost:3000\r\n" +
             "Connection: keep-alive\r\n" +
             "Upgrade-Insecure-Requests: 1\r\n" +

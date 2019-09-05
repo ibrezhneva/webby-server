@@ -1,7 +1,5 @@
-package com.ibrezhneva.webby.integration;
+package com.ibrezhneva.webby.app;
 
-import com.ibrezhneva.webby.app.Server;
-import com.ibrezhneva.webby.app.ServerConfig;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -48,7 +46,7 @@ public class PostRequestITest {
         serverConfig.setMaxThreads(20);
         serverConfig.setKeepAliveTimeout(60);
         serverConfig.setAcceptCount(10);
-        serverConfig.setPathToWebApps("src/test/webapps");
+        serverConfig.setPathToWebApps("src/test-integration/webapps");
         serverConfig.setWarName("test-only-post.war");
         Server server = new Server(serverConfig);
         server.start();

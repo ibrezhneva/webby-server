@@ -1,0 +1,21 @@
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+		 http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+
+    <!-- Servlets -->
+
+    <servlet>
+        <servlet-name>getMessageServlet</servlet-name>
+        <servlet-class>com.ibrezhneva.web.app.servlet.GetMessageServlet</servlet-class>
+    </servlet>
+
+    <!-- Servlet Mappings -->
+
+    <servlet-mapping>
+        <servlet-name>getMessageServlet</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+
+</web-app>

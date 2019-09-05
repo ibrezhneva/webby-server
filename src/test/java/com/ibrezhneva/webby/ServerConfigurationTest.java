@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ServerConfigurationTest {
-    private static final String CONFIGURATION_YAML = "configuration.yaml";
+    private static final String CONFIGURATION_YAML = "src/test/resources/configuration.yaml";
 
     @Test
     @DisplayName("Parse server config from yaml")
