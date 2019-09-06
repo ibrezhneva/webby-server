@@ -62,6 +62,8 @@ Webby Server Directories
 
  * bin  - Startup and shutdown scripts
 
+ * conf - Server configuration files
+
  * lib  - Libraries and classes used by Webby Server, added to classpath
 
  * logs - Log and output files

@@ -62,7 +62,7 @@ class RequestParserTest {
     void testInjectParameters() {
         AppServletRequest request = new AppServletRequest();
         request.setQueryString("name1=value1&name2=value2&name2=value3");
-        RequestParser.injectParameters(request);
+        RequestParser.injectUriParameters(request);
         String[] name2ParamValues = {"value2", "value3"};
         assertArrayEquals(name2ParamValues, request.getParameterValues("name2"));
         assertEquals("value1", request.getParameter("name1"));

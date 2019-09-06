@@ -3,6 +3,7 @@ package com.ibrezhneva.webby.entity.model;
 
 import com.ibrezhneva.webby.entity.adapter.HttpServletRequestAdapter;
 import com.ibrezhneva.webby.entity.http.HttpHeader;
+import com.ibrezhneva.webby.entity.http.HttpHeaderName;
 import com.ibrezhneva.webby.entity.http.HttpMethod;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,7 +22,10 @@ public class AppServletRequest extends HttpServletRequestAdapter {
     private String absoluteUri;
     private String queryString;
     private Cookie[] cookies;
+    private String charset;
     private String servletPath;
+    @Getter
+    private boolean isRootRedirect;
     @Getter
     private String webAppName;
     private Map<String, String[]> parameters;
@@ -66,6 +70,25 @@ public class AppServletRequest extends HttpServletRequestAdapter {
     @Override
     public String getServletPath() {
         return servletPath;
+    }
+
+    @Override
+    public String getCharacterEncoding() {
+        return charset;
+    }
+
+    @Override
+    public int getContentLength() {
+        try {
+            return Integer.parseInt(getHeader(HttpHeaderName.CONTENT_LENGTH.getName()));
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    @Override
+    public String getContentType() {
+        return getHeader(HttpHeaderName.CONTENT_TYPE.getName());
     }
 
     @Override

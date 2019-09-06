@@ -42,7 +42,7 @@ public class AppServletResponse extends HttpServletResponseAdapter {
 
     @Override
     public void sendRedirect(String location) {
-        setStatus(HttpStatus.MOVED_PERMANENTLY.getStatusCode());
+        setStatus(HttpStatus.FOUND.getStatusCode());
         addHeader(HttpHeaderName.LOCATION.getName(), location);
     }
 

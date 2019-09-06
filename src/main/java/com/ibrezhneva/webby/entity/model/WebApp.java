@@ -37,7 +37,11 @@ public class WebApp {
             } else {
                 servlet = servletOptional.get();
             }
-            servlet.service(request, response);
+            if (request.isRootRedirect()) {
+                response.sendRedirect(request.getRequestURI()+request.getServletPath());
+            } else {
+                servlet.service(request, response);
+            }
             response.getWriter().flush();
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("Error during servlet instantiation", e);

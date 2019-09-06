@@ -1,16 +1,24 @@
 package com.ibrezhneva.webby.app;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Comparator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PostRequestITest {
+    private static final String URL_STRING = "http://localhost:8181/test-only-post/hello";
+    private static final String EXPECTED_RESPONSE = "Hello from POST!";
+    private static final String PATH_TO_WEB_APPS = "src/test-integration/webapps";
+    private static final String WAR_NAME = "test-only-post.war";
+    private static final String UNPACKED_WAR_NAME = "test-only-post";
 
     @Test
     public void testPostRequest() throws Exception {
@@ -18,7 +26,7 @@ public class PostRequestITest {
         new Thread(r).start();
 
         Thread.sleep(1000);
-        URL url = new URL("http://localhost:8181/test-only-post/hello");
+        URL url = new URL(URL_STRING);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
 
@@ -37,7 +45,7 @@ public class PostRequestITest {
                 response.append(inputLine);
             }
         }
-        assertEquals("Hello from POST!", response.toString());
+        assertEquals(EXPECTED_RESPONSE, response.toString());
     }
 
     private void testServerStart() {
@@ -46,10 +54,17 @@ public class PostRequestITest {
         serverConfig.setMaxThreads(20);
         serverConfig.setKeepAliveTimeout(60);
         serverConfig.setAcceptCount(10);
-        serverConfig.setPathToWebApps("src/test-integration/webapps");
-        serverConfig.setWarName("test-only-post.war");
+        serverConfig.setPathToWebApps(PATH_TO_WEB_APPS);
+        serverConfig.setWarName(WAR_NAME);
         Server server = new Server(serverConfig);
         server.start();
     }
 
+    @AfterEach
+    void removeUnpackedWar() throws IOException {
+        Files.walk(Paths.get(PATH_TO_WEB_APPS, UNPACKED_WAR_NAME))
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
+    }
 }

@@ -1,17 +1,27 @@
 package com.ibrezhneva.webby.app;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Comparator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GetRequestITest {
-    private static final String URL_STRING = "http://localhost:8180/test-only-get";
+    private static final String URL_STRING = "http://localhost:8180/test-only-get/";
     private static final String EXPECTED_RESPONSE = "Hello from GET!";
+    private static final String PATH_TO_WEB_APPS = "src/test-integration/webapps";
+    private static final String WAR_NAME = "test-only-get.war";
+    private static final String UNPACKED_WAR_NAME = "test-only-get";
 
     @Test
     public void testGetRequest() throws Exception {
@@ -46,10 +56,18 @@ public class GetRequestITest {
         serverConfig.setMaxThreads(20);
         serverConfig.setKeepAliveTimeout(60);
         serverConfig.setAcceptCount(10);
-        serverConfig.setPathToWebApps("src/test-integration/webapps");
-        serverConfig.setWarName("test-only-get.war");
+        serverConfig.setPathToWebApps(PATH_TO_WEB_APPS);
+        serverConfig.setWarName(WAR_NAME);
         Server server = new Server(serverConfig);
         server.start();
+    }
+
+    @AfterEach
+    void removeUnpackedWar() throws IOException {
+        Files.walk(Paths.get(PATH_TO_WEB_APPS, UNPACKED_WAR_NAME))
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
     }
 
 }
