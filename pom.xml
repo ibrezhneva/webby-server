@@ -126,6 +126,22 @@
                     </includes>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.ibrezhneva</groupId>
+                <artifactId>multipack-maven-plugin</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <source>src/test-integration/webapps/projects</source>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -169,12 +185,6 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>5.5.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.9.5</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

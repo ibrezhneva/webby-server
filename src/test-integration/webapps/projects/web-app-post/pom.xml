@@ -26,7 +26,7 @@
                 <version>2.2</version>
                 <configuration>
                     <warName>test-only-post</warName>
-                    <outputDirectory>../../</outputDirectory>
+                    <outputDirectory>src/test-integration/webapps</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>

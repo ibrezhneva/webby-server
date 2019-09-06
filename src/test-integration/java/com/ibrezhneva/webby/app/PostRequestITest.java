@@ -18,7 +18,7 @@ public class PostRequestITest {
         new Thread(r).start();
 
         Thread.sleep(1000);
-        URL url = new URL("http://localhost:8180/test-only-post/hello");
+        URL url = new URL("http://localhost:8181/test-only-post/hello");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
 
@@ -42,7 +42,7 @@ public class PostRequestITest {
 
     private void testServerStart() {
         ServerConfig serverConfig = new ServerConfig();
-        serverConfig.setPort(8180);
+        serverConfig.setPort(8181);
         serverConfig.setMaxThreads(20);
         serverConfig.setKeepAliveTimeout(60);
         serverConfig.setAcceptCount(10);
