@@ -8,6 +8,7 @@ public enum HttpHeaderName {
     TRANSFER_ENCODING("Transfer-Encoding"),
     CONTENT_TYPE("Content-Type"),
     COOKIE("Cookie"),
+    SET_COOKIE("Set-Cookie"),
     LOCATION("Location");
 
     private String name;

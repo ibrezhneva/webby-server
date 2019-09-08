@@ -22,7 +22,7 @@ class WebAppTest {
         response.setCookies(cookies);
 
         String cookieHeaderValue = "cookie1=value1; cookie2=value2; cookie3=value3";
-        HttpHeader expectedHttpHeader = new HttpHeader("Cookie", cookieHeaderValue);
+        HttpHeader expectedHttpHeader = new HttpHeader("Set-Cookie", cookieHeaderValue);
         HttpHeader actualHttpHeader = response.getCookiesHeader();
         assertEquals(expectedHttpHeader, actualHttpHeader);
     }

@@ -209,7 +209,7 @@ public class AppServletResponse extends HttpServletResponseAdapter {
         for (Cookie cookie : cookies) {
             joiner.add(cookieToString(cookie));
         }
-        String headerName = HttpHeaderName.COOKIE.getName();
+        String headerName = HttpHeaderName.SET_COOKIE.getName();
         String headerValue = joiner.toString();
 
         return new HttpHeader(headerName, headerValue);

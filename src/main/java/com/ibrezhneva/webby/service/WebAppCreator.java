@@ -1,5 +1,6 @@
 package com.ibrezhneva.webby.service;
 
+import com.ibrezhneva.webby.entity.model.FilterDefinitionDto;
 import com.ibrezhneva.webby.entity.model.WebApp;
 import com.ibrezhneva.webby.entity.model.WebAppContainer;
 import com.ibrezhneva.webby.reader.DeploymentDescriptorHandler;
@@ -9,6 +10,8 @@ import com.ibrezhneva.webby.reader.xml.XmlDeploymentDescriptorHandler;
 import com.ibrezhneva.webby.util.WarExtractor;
 import lombok.AllArgsConstructor;
 
+import javax.servlet.Filter;
+import javax.servlet.http.HttpServlet;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -50,12 +53,19 @@ public class WebAppCreator {
         WebApp webApp = new WebApp(appName);
         Path webInfPath = Paths.get(deploymentDescriptorPath).getParent();
         webApp.setClassLoader(getClassLoader(webInfPath));
-        Map<String, Class<?>> servletPathToClassMap = deploymentDescriptor.getServletDefinitions()
+        Map<String, Class<? extends HttpServlet>> servletPathToClassMap = deploymentDescriptor.getServletDefinitions()
                 .stream()
                 .collect(Collectors.toMap(ServletDefinition::getUrlPattern,
-                        t -> getClass(webApp, t.getClassName())));
+                        t -> getClass(webApp, t.getClassName(), HttpServlet.class)));
 
         webApp.setServletPathToClassMap(servletPathToClassMap);
+
+        List<FilterDefinitionDto> filterDefinitionDtos = deploymentDescriptor.getFilterDefinitions()
+                .stream()
+                .map(e -> new FilterDefinitionDto(e.getUrlPattern(), getClass(webApp, e.getClassName(), Filter.class)))
+                .collect(Collectors.toList());
+
+        webApp.setFilterDefinitionDtos(filterDefinitionDtos);
         return webApp;
     }
 
@@ -80,9 +90,13 @@ public class WebAppCreator {
         }
     }
 
-    private Class<?> getClass(WebApp webApp, String className) {
+    private <T> Class<? extends T> getClass(WebApp webApp, String className, Class<T> superClazz) {
         try {
-            return webApp.getClassLoader().loadClass(className);
+            Class<?> clazz = webApp.getClassLoader().loadClass(className);
+            if(!superClazz.isAssignableFrom(clazz)) {
+                throw new RuntimeException(superClazz + " is not assignable from " + clazz);
+            }
+            return (Class<? extends T>) clazz;
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Class not found for " + className, e);
         }

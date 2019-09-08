@@ -2,6 +2,7 @@ package com.ibrezhneva.webby.reader.xml;
 
 import com.ibrezhneva.webby.reader.DeploymentDescriptorHandler;
 import com.ibrezhneva.webby.reader.entity.DeploymentDescriptor;
+import com.ibrezhneva.webby.reader.entity.FilterDefinition;
 import com.ibrezhneva.webby.reader.entity.ServletDefinition;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,8 +11,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class XmlDeploymentDescriptorHandlerTest {
 
@@ -41,11 +41,21 @@ class XmlDeploymentDescriptorHandlerTest {
         servletDefinition3.setUrlPattern("/product/edit");
         servletDefinitions.add(servletDefinition3);
 
+        FilterDefinition filterDefinition = new FilterDefinition();
+        filterDefinition.setClassName("com.ibrezhneva.webby.entity.filter.AuthorizationFilter");
+        filterDefinition.setUrlPattern("/product/*");
+
         DeploymentDescriptorHandler handler = new XmlDeploymentDescriptorHandler();
         InputStream in = XmlDeploymentDescriptorHandlerTest.class.getClassLoader().getResourceAsStream(DEPLOYMENT_DESCRIPTOR_PATH);
         DeploymentDescriptor deploymentDescriptor = handler.getDeploymentDescriptor(in);
         assertNotNull(deploymentDescriptor);
-        assertTrue(deploymentDescriptor.getServletDefinitions().containsAll(servletDefinitions));
-        assertTrue(servletDefinitions.containsAll(deploymentDescriptor.getServletDefinitions()));
+        List<ServletDefinition> actualServletDefinitions = deploymentDescriptor.getServletDefinitions();
+        assertTrue(actualServletDefinitions.containsAll(servletDefinitions));
+        assertTrue(servletDefinitions.containsAll(actualServletDefinitions));
+
+        List<FilterDefinition> actualFilterDefinitions = deploymentDescriptor.getFilterDefinitions();
+        assertNotNull(actualFilterDefinitions);
+        assertEquals(1, actualFilterDefinitions.size());
+        assertTrue(actualFilterDefinitions.contains(filterDefinition));
     }
 }
